@@ -1,12 +1,11 @@
-type RequiredProp<T> = {
-    [P in keyof T as T[P] extends never ? never : P]: T[P];
-};
+
+type OmitNever<T> = { [K in keyof T as T[K] extends undefined | never ? never : K]: T[K] }
 
 export function RequestBuilder<Paths>(caller: ((url: string, method: string, body: any) => Promise<any>) | null = null) {
 
-    function Endpoint<
+    function entryPoint<
         Url extends keyof Paths,
-        Methods extends keyof Omit<Pick<Paths[Url], keyof RequiredProp<Paths[Url]>>, "parameters">,
+        Methods extends keyof Omit<OmitNever<Paths[Url]>, "parameters">,
         Method extends Methods
     >(url: Url, method: Method) {
         type P = Required<Paths[Url][Method]>
@@ -17,13 +16,13 @@ export function RequestBuilder<Paths>(caller: ((url: string, method: string, bod
         type Query = Extract<Param, { query }>['query']
         type Body = Extract<Required<P>, { requestBody: { content: { 'application/json' } } }>['requestBody']['content']['application/json']
         type O = { path: Path; query: Query; body: Body; }
-        type Option = Pick<O, keyof RequiredProp<O>>
+        type Option = Pick<O, keyof OmitNever<O>>
 
-        function Fetch(options: Option) {
-            return Call(caller, options)
+        function fetch(options: Option) {
+            return call(caller, options)
         }
 
-        async function Call(caller: ((url: string, method: string, body: any) => Promise<any>) | null, options: Option) {
+        async function call(caller: ((url: string, method: string, body: any) => Promise<any>) | null, options: Option) {
             let path = (options as any).path as Path;
             let query = (options as any).query as Query;
             let body = (options as any).body as Body;
@@ -56,8 +55,8 @@ export function RequestBuilder<Paths>(caller: ((url: string, method: string, bod
         }
 
         return {
-            Call,
-            Fetch,
+            call,
+            fetch,
             method: method as string,
             url: url as string,
             types: {
@@ -69,5 +68,5 @@ export function RequestBuilder<Paths>(caller: ((url: string, method: string, bod
         };
     }
 
-    return { Endpoint };
+    return { entryPoint };
 }
