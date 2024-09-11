@@ -1,0 +1,5 @@
+
+```
+npx openapi-typescript demo-swagger.json --output src/schema-demo.ts
+```
+
