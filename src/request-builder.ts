@@ -1,16 +1,16 @@
 
 type OmitNever<T> = { [K in keyof T as T[K] extends undefined | never ? never : K]: T[K] }
+type StatusSuccess<T> = { [K in keyof T as K extends 200 | 201 | 202 | 203 | 204 | 205 | 206 ? K : never]: T[K] }
 
 export function RequestBuilder<Paths>(caller: ((url: string, method: string, body: any) => Promise<any>) | null = null) {
 
     function entryPoint<
         Url extends keyof Paths,
-        Methods extends keyof Omit<OmitNever<Paths[Url]>, "parameters">,
-        Method extends Methods
+        Method extends keyof Omit<OmitNever<Paths[Url]>, "parameters">
     >(url: Url, method: Method) {
         type P = Required<Paths[Url][Method]>
         type Param = Required<Extract<P, { parameters }>['parameters']>
-        type Resp = Extract<P, { responses }>['responses']
+        type Resp = StatusSuccess<Extract<P, { responses }>['responses']>
         type Result = { [P in keyof Resp as keyof Resp[P]]: Resp[P]['content']['application/json']; }['content']
         type Path = Extract<Param, { path }>['path']
         type Query = Extract<Param, { query }>['query']
@@ -60,6 +60,7 @@ export function RequestBuilder<Paths>(caller: ((url: string, method: string, bod
             method: method as string,
             url: url as string,
             types: {
+                resultStatus: {} as keyof Resp,
                 result: {} as Result,
                 path: {} as Path,
                 query: {} as Query,

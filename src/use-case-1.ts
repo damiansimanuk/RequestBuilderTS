@@ -9,7 +9,7 @@ function caller(url: string, method: string, body: any) {
     }).then(e => e.json())
 }
 
-var req1_1 = RequestBuilder<paths>()
+var req1_1 = await RequestBuilder<paths>()
     .entryPoint("/security/confirmEmail", "get")
     .call(caller, { query: { code: "", userId: "1" } });
 
@@ -47,12 +47,25 @@ requestBuilder.entryPoint("/security/login", "post")
 
 var result = await requestBuilder.entryPoint("/security/login", "post")
     .fetch({
-        query: { useCookies: true }
-        , body: {
+        query: { useCookies: true },
+        body: {
             email: "email@example.com",
             password: "Pa$$word123",
         }
     })
 
+var resultRefresh = await requestBuilder.entryPoint("/security/refresh", "post")
+    .fetch({ body: { refreshToken: result.refreshToken } })
 
-requestBuilder.entryPoint("/security/manage/info", "post").fetch({body:{}})
+
+var res = requestBuilder.entryPoint("/security/login", "post").fetch({
+    query: { useCookies: true },
+    body: { email: "", password: "" },
+})
+
+
+var reqInfo = requestBuilder.entryPoint("/security/manage/info", "post")
+
+type infoTypes = typeof reqInfo.types
+
+
