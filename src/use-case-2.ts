@@ -22,10 +22,11 @@ class RequestDemo {
     login(body: typeof this.loginRequest.types.body) {
         return this.loginRequest.fetch({ body, query: { useCookies: true } })
     }
+
+    entryPoint = this.requestBuilder.entryPoint
 }
 
 var requestDemo = new RequestDemo()
 var result = await requestDemo.login({ email: "email@example.com", password: "Pa$$word123" })
 var accessToken = result.accessToken
-
-
+ 
